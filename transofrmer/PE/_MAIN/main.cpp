@@ -1,32 +1,5 @@
 #include "../Instrumentation/materialization/state/pe.hpp"
 
-using namespace _PE;
-
-struct PE_
-{
-
-	template<typename T> void pe_parse(T PE)
-	{
-		auto nth_parser = [](T PE) -> PIMAGE_NT_HEADERS
-		{
-			auto parse_dos = [](T PE) -> PIMAGE_DOS_HEADER
-			{
-				PIMAGE_DOS_HEADER dos = reinterpret_cast<PIMAGE_DOS_HEADER>(const_cast<uint8_t*>(PE.data()));
-				cout << "[first 4 bytes] : 0x" << hex << dos->e_magic << endl;
-				return dos;
-			};
-			auto dos = parse_dos(PE);
-			auto dos_base = reinterpret_cast<uint8_t*>(dos);
-			PIMAGE_NT_HEADERS nth = reinterpret_cast<PIMAGE_NT_HEADERS>(dos_base + dos->e_lfanew);
-			cout << "[NT_HEADER signature] : 0x" << nth->Signature << endl;
-			cout << "[NumberOfSections] : " << nth->FileHeader.NumberOfSections << endl;
-			TIME_pl("[TimeDateStamp] : ", nth->FileHeader.TimeDateStamp);
-			return nth;
-		};
-		auto opth = nth_parser(PE);
-	}
-};
-
 int main(int ac, char **av)
 {
 	if(ac != 2)
