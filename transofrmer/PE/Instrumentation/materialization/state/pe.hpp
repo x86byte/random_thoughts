@@ -230,9 +230,11 @@ struct PE_
 			return nth;
 		};
 		nt64_ = nth_parser(PE);
-		auto parse_sec = [&](T& PE) -> PIMAGE_SECTION_HEADER
+		cout << "[nt heaeder 64] : " <<  hex << nt64_ << endl;
+		cout << "[image base] : 0x" <<  hex << image_base_ << endl;
+		[&](T& PE)
 		{
-			auto sec_info_printer = [&](SectionInfo& si)
+			auto sec_info_printer = [&](SectionInfo si)
 			{
 				cout << "[SECTION Name]  : " << si.name << endl;
 				cout << "[rva]			: " << si.rva << endl;
@@ -261,10 +263,7 @@ struct PE_
 				sections.push_back(si);
 				sh_bp++;
 			}
-			return sh;
 		}.operator()(PE);
 		cout << endl;
-		cout << "[nt heaeder 64] : " <<  hex << nt64_ << endl;
-		cout << "[image base] : 0x" <<  hex << image_base_ << endl;
 	}
 };
