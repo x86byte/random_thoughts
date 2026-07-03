@@ -22,6 +22,7 @@ namespace _PE
 	using WORD	= uint16_t;
 	using VA   = uint64_t;
 	using RVA  = uint32_t;
+	using Off  = uint32_t;
 	using U64  = uint64_t;
 	using U32  = uint32_t;
 	using i32  = int32_t;
@@ -31,19 +32,21 @@ namespace _PE
 
 	#pragma pack(push, 1)
 
-		typedef struct _IMAGE_SECTION_HEADER
-		{
-		     UCHAR Name[8];
-		     U32 Misc;
-		     U32 VirtualAddress;
-		     U32 SizeOfRawData;
-		     U32 PointerToRawData;
-		     U32 PointerToRelocations;
-		     U32 PointerToLinenumbers;
-		     WORD NumberOfRelocations;
-		     WORD NumberOfLinenumbers;
-		     U32 Characteristics;
-		} IMAGE_SECTION_HEADER, *PIMAGE_SECTION_HEADER;
+	typedef struct _IMAGE_SECTION_HEADER {
+		UCHAR  Name[8];
+		union {
+			U32 PhysicalAddress;
+			U32 VirtualSize;
+		} Misc;
+		U32 VirtualAddress;
+		U32 SizeOfRawData;
+		U32 PointerToRawData;
+		U32 PointerToRelocations;
+		U32 PointerToLinenumbers;
+		WORD  NumberOfRelocations;
+		WORD  NumberOfLinenumbers;
+		U32 Characteristics;
+	} IMAGE_SECTION_HEADER, *PIMAGE_SECTION_HEADER;
 
 		typedef struct _IMAGE_FILE_HEADER
 		{
@@ -173,10 +176,24 @@ namespace Helpers
 	};
 }
 
-#pragma endregion HERLPERS
 
 using namespace _PE;
 using namespace  Helpers;
+
+struct
+SectionInfo
+{
+	char		name[9]   = {};
+	RVA			rva       = 0;
+	U32			virt_size = 0;
+	Off			raw_off   = 0;
+	U32			raw_size  = 0;
+	U32			chars     = 0;
+};
+
+#pragma endregion HERLPERS
+
+#include <array>
 
 struct PE_
 {
@@ -185,6 +202,7 @@ struct PE_
 	RVA						entry_point_	= 0;
 	size_t					size_of_image_	= 0;
 	PIMAGE_NT_HEADERS64		nt64_			= nullptr;
+	vector<SectionInfo> sections;
 	template<typename T> void pe_infos(T& PE) {
 		auto nth_parser = [&](T& PE) -> PIMAGE_NT_HEADERS64
 		{
@@ -215,9 +233,33 @@ struct PE_
 		{
 			WORD	num		= nt64_->FileHeader.NumberOfSections;
 			size_t	opt_sz	= nt64_->FileHeader.SizeOfOptionalHeader;
-			return nullptr;
-		};
-		cout << "[nt heaeder 64] : 0x" <<  hex << nt64_ << endl;
+			PIMAGE_SECTION_HEADER sh = (PIMAGE_SECTION_HEADER)(reinterpret_cast<uint8_t*>(&nt64_->OptionalHeader) + opt_sz);
+			PIMAGE_SECTION_HEADER sh_bp = sh;
+			U64 nbr_s = nt64_->FileHeader.NumberOfSections;
+			sections.reserve(nbr_s);
+			for (int i = 0; i < nbr_s; i++)
+			{
+				SectionInfo si{};
+				copy(begin(sh_bp->Name), end(sh_bp->Name), begin(si.name));
+				si.rva = sh_bp->VirtualAddress;
+				si.virt_size = sh_bp->Misc.VirtualSize;
+				si.raw_off = sh_bp->PointerToRawData;
+				si.raw_size = sh_bp->SizeOfRawData;
+				si.chars = sh_bp->Characteristics;
+				cout << "[SECTION Name]  : " << si.name << endl;
+				cout << "[rva]			: " << si.rva << endl;
+				cout << "[virt_size]	    : " << si.virt_size << endl;
+				cout << "[raw_off]		: " << si.raw_off << endl;
+				cout << "[raw_size]		: " << si.raw_size << endl;
+				cout << "[chars]		    : " << si.chars << endl;
+				cout << endl;
+				sections.push_back(si);
+				sh_bp++;
+			}
+			return sh;
+		}.operator()(PE);
+		cout << endl;
+		cout << "[nt heaeder 64] : " <<  hex << nt64_ << endl;
 		cout << "[image base] : 0x" <<  hex << image_base_ << endl;
 	}
 };

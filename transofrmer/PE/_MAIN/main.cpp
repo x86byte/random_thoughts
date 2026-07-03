@@ -8,7 +8,7 @@ int main(int ac, char **av)
 	// 	cout << "give a PE to parse\n./pe target.exe\n";
 	// 	return 1;
 	// }
-	fs::path pth("transofrmer/bins/h.exe");
+	fs::path pth("../../bins/h.exe");
 	cout << "[PE name] : " << pth << endl;
 	ifstream PE(pth, ios::binary);
 	if(!PE.is_open())
@@ -16,7 +16,6 @@ int main(int ac, char **av)
 		throw Error("[INTERNAL ERROR] couldn't open the PE file\n");
 		return 1;
 	}
-
 	PE.seekg(0, ios::end);
 	size_t PE_size = PE.tellg();
 	cout << "[PE size] : " << PE_size << endl;
