@@ -27,6 +27,7 @@ namespace _PE
 	using U32  = uint32_t;
 	using i32  = int32_t;
 	using UCHAR	= uint8_t;
+	using BYTE	= uint8_t; // damn i forget an i write BYTE always instead of UCHAR...
 	using PVOID	= void *;
 	namespace fs 	= filesystem;
 
@@ -183,7 +184,7 @@ using namespace  Helpers;
 struct
 SectionInfo
 {
-	char		name[9]   = {};
+	BYTE		name[9]   = {};
 	RVA			rva       = 0;
 	U32			virt_size = 0;
 	Off			raw_off   = 0;
@@ -231,6 +232,16 @@ struct PE_
 		nt64_ = nth_parser(PE);
 		auto parse_sec = [&](T& PE) -> PIMAGE_SECTION_HEADER
 		{
+			auto sec_info_printer = [&](SectionInfo& si)
+			{
+				cout << "[SECTION Name]  : " << si.name << endl;
+				cout << "[rva]			: " << si.rva << endl;
+				cout << "[virt_size]	    : " << si.virt_size << endl;
+				cout << "[raw_off]		: " << si.raw_off << endl;
+				cout << "[raw_size]		: " << si.raw_size << endl;
+				cout << "[chars]		    : " << si.chars << endl;
+				cout << endl;
+			};
 			WORD	num		= nt64_->FileHeader.NumberOfSections;
 			size_t	opt_sz	= nt64_->FileHeader.SizeOfOptionalHeader;
 			PIMAGE_SECTION_HEADER sh = (PIMAGE_SECTION_HEADER)(reinterpret_cast<uint8_t*>(&nt64_->OptionalHeader) + opt_sz);
@@ -246,13 +257,7 @@ struct PE_
 				si.raw_off = sh_bp->PointerToRawData;
 				si.raw_size = sh_bp->SizeOfRawData;
 				si.chars = sh_bp->Characteristics;
-				cout << "[SECTION Name]  : " << si.name << endl;
-				cout << "[rva]			: " << si.rva << endl;
-				cout << "[virt_size]	    : " << si.virt_size << endl;
-				cout << "[raw_off]		: " << si.raw_off << endl;
-				cout << "[raw_size]		: " << si.raw_size << endl;
-				cout << "[chars]		    : " << si.chars << endl;
-				cout << endl;
+				sec_info_printer(si);
 				sections.push_back(si);
 				sh_bp++;
 			}
