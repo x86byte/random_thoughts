@@ -25,6 +25,7 @@ namespace _PE
 	using UCHAR = uint8_t;
 	using BYTE = uint8_t; // damn i forget an i write BYTE always instead of UCHAR...
 	using PVOID = void*;
+	using vui = vector<uint8_t>;
 	namespace fs = filesystem;
 
 #pragma pack(push, 1)
@@ -192,18 +193,23 @@ struct
 
 #include <array>
 
-struct PE_
+struct PeFile
 {
+	vector<uint8_t>			PeImage;
+	ll						PeImageSize;
 	bool					ispe32plus = false;
 	VA						image_base_ = 0;
 	RVA						entry_point_ = 0;
 	size_t					size_of_image_ = 0;
 	PIMAGE_NT_HEADERS64		nt64_ = nullptr;
-	vector<SectionInfo> sections;
-	template<typename T> void pe_infos(T& PE) {
-		auto nth_parser = [&](T& PE) -> PIMAGE_NT_HEADERS64
+	vector<SectionInfo>		sections;
+
+	PeFile(fs::path PePath);
+
+	void pe_infos() {
+		auto nth_parser = [&](vui& PE) -> PIMAGE_NT_HEADERS64
 			{
-				auto parse_dos = [&](T& PE) -> PIMAGE_DOS_HEADER
+				auto parse_dos = [&](vui& PE) -> PIMAGE_DOS_HEADER
 					{
 						PIMAGE_DOS_HEADER dos = reinterpret_cast<PIMAGE_DOS_HEADER>(const_cast<uint8_t*>(PE.data()));
 						cout << "[first 4 bytes] : 0x" << hex << dos->e_magic << endl;
@@ -215,20 +221,32 @@ struct PE_
 				cout << "[NT_HEADER signature] : 0x" << hex << nth->Signature << endl;
 				cout << "[NumberOfSections] : " << nth->FileHeader.NumberOfSections << endl;
 				TIME_pl("[TimeDateStamp] : ", nth->FileHeader.TimeDateStamp);
-				PIMAGE_OPTIONAL_HEADER64 oh = &nth->OptionalHeader;
-				if (oh->Magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC)
-					ispe32plus = true;
-				else
-					throw Error("[PeImage - ERROR]  not a PE32+ (x64) image - only x64 supported\n");
-				image_base_ = oh->ImageBase;
-				entry_point_ = oh->AddressOfEntryPoint;
-				size_of_image_ = oh->SizeOfImage;
-				return nth;
+				{
+					PIMAGE_OPTIONAL_HEADER64 oh = &nth->OptionalHeader;
+					cout << "[Magic] : " << oh->Magic << endl;
+					if (oh->Magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC)
+					{
+						cout << "[PE32+] : true" << endl;
+						ispe32plus = true;
+					}
+					else
+					{
+						cout << "[PE32+] : false" << endl;
+						ispe32plus = false;
+					}
+					image_base_ = oh->ImageBase;
+					entry_point_ = oh->AddressOfEntryPoint;
+					size_of_image_ = oh->SizeOfImage;
+					return nth;
+				}
+
 			};
-		nt64_ = nth_parser(PE);
+		nt64_ = nth_parser(PeImage);
+		if (!ispe32plus)
+			throw Error("[PeImage - ERROR]  not a PE32+ (x64) image - only x64 supported\n");
 		cout << "[nt heaeder 64] : " << hex << nt64_ << endl;
 		cout << "[image base] : 0x" << hex << image_base_ << endl;
-		[&](T& PE)
+		[&](vui& PE)
 			{
 				auto sec_info_printer = [&](SectionInfo si)
 					{
@@ -259,7 +277,7 @@ struct PE_
 					sections.push_back(si);
 					sh_bp++;
 				}
-			}.operator()(PE);
+			}.operator()(PeImage);
 		cout << endl;
 	}
 };
