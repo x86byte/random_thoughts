@@ -169,6 +169,23 @@ VOID PeFile::FmtPeInfos() {
 	cout << endl;
 }
 
+PIMAGE_DOS_HEADER	PeFile::DosGetter()
+{
+	return (reinterpret_cast<PIMAGE_DOS_HEADER>(PeImage.data()));
+}
+
+PIMAGE_NT_HEADERS64	PeFile::nt()
+{
+	return (reinterpret_cast<PIMAGE_NT_HEADERS64>(PeImage.data() + DosGetter()->e_lfanew));
+}
+
+
+VOID	test(auto ob)
+{
+	PIMAGE_NT_HEADERS64 ret = ob.nt();
+	cout << "MACHINE arch : " << ret->FileHeader.Machine << endl;
+}
+
 int main(int ac, char* av[])
 {
 	try {
@@ -183,6 +200,7 @@ int main(int ac, char* av[])
 			fs::path pth(PePath);
 			cout << "[PE name] : " << pth << endl;
 			PeFile pe(pth);
+			test(pe);
 			pe.FmtPeInfos();
 			string PdbFile = av[1];
 			if (ExtensionChecker(PdbFile))

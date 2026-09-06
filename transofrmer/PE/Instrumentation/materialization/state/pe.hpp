@@ -70,4 +70,6 @@ struct PeFile
 	PeFile(fs::path PePath);
 	VOID					_IsValidPe();
 	VOID					FmtPeInfos();
+	PIMAGE_DOS_HEADER		DosGetter();
+	PIMAGE_NT_HEADERS64		nt();
 };
