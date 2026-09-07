@@ -89,6 +89,7 @@ struct PeFile
 	VOID					DetectType();
 	[[nodiscard]] ll		arch_();
 	[[nodiscard]] string	PeType_();
+	[[nodiscard]] string		GetSectionIdx();
 	PIMAGE_DOS_HEADER		dos();
 	PIMAGE_NT_HEADERS64		nt();
 };

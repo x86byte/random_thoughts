@@ -93,6 +93,7 @@ PeFile::PeFile(fs::path PePath)
 	}
 	DetectArch();
 	DetectType();
+	cout << "[First sec name for test] : " << GetSectionIdx() << endl;
 }
 
 VOID PeFile::FmtPeInfos() {
@@ -211,6 +212,13 @@ VOID PeFile::DetectType()
 	else
 		PeType = static_cast<ll>(t_type::UNKNOWN);
 	return;
+}
+
+string	PeFile::GetSectionIdx()
+{
+	auto* Head = IMAGE_FIRST_SECTION(nt());
+	i32		i = 0;
+	return string(reinterpret_cast<char*>(Head[0].Name));
 }
 
 ll	PeFile::arch_()
