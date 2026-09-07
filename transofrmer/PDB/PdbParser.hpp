@@ -3,7 +3,7 @@
 class PdbParser {
 private:
 	PeFile			PE_;
-	string			PdbFile;
+	const string& PdbFile;
 	struct			FunctionInfos
 	{
 		string		FuncName;
@@ -11,9 +11,11 @@ private:
 		ll			CodeSize;
 	};
 
-	vector<FunctionInfos> EnumFunctions();
 public:
-	explicit		PdbParser(PeFile PE);
-	ll				ProbablyAPdbFile(const string& PdbFile);
+	explicit				PdbParser(PeFile PE, const string& PdbFile_);
+	ll						ProbablyAPdbFile(const string& PdbFile);
+	string					FindThePdbPath();
+	vector<FunctionInfos>	EnumFunctions();
+
 	~PdbParser() = default;
 };

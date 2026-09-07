@@ -24,7 +24,34 @@ ll	PdbParser::ProbablyAPdbFile(const string& PdbFile)
 	return strncmp(buffer.data(), PDB_SIGNATURE, sizeof(PDB_SIGNATURE) - 1) == 0;
 }
 
-PdbParser::PdbParser(PeFile PE) : PE_(PE) {}
+PdbParser::PdbParser(PeFile PE, const string& PdbFile_) : PE_(PE), PdbFile(PdbFile_) {}
+
+string	PdbParser::FindThePdbPath()
+{
+	auto& DbgDir = PE_.nt()->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG];
+	if (DbgDir.VirtualAddress)
+	{
+		auto* Img = reinterpret_cast<PIMAGE_DEBUG_DIRECTORY>(PE_.Raw_.data() + DbgDir.VirtualAddress);
+		ll ImgSz = DbgDir.Size / sizeof(IMAGE_DEBUG_DIRECTORY);
+		ll Ctr = 0;
+		Const_String PdbPath;
+		while (ImgSz--)
+		{
+			PdbPath = reinterpret_cast<const char*>(PE_.Raw_.data() + Img[Ctr].PointerToRawData + 24);
+			if (fs::exists(PdbPath))
+				return PdbPath;
+			Ctr++;
+		}
+	}
+	if (fs::exists(PdbFile))
+		return PdbFile;
+	throw Error("[INTERNAL - ERROR] There is no pdb file founded with the Pe file.");
+}
+
+vector<PdbParser::FunctionInfos> PdbParser::EnumFunctions()
+{
+	return vector{ PdbParser::FunctionInfos{ "", 0, 0 } };
+};
 
 /*
 PS C:\LLVM\learning\random_thoughts\transofrmer\PE\_MAIN> .\PdbParser.exe "C:\\Dev\\Current\\ent8\\ntoskrnl.pdb"
@@ -262,7 +289,8 @@ i32 main(i32 ac, i8* av[])
 					cout << "[ERROR] The file does not exist." << endl;
 					return 1;
 				}
-				PdbParser PdbParser_(pe);
+				PdbParser PdbParser_(pe, PdbFile);
+				PdbParser_.FindThePdbPath();
 				if (!PdbParser_.ProbablyAPdbFile(PdbFile))
 				{
 					cout << "[ERROR] The file does not appear to be a valid PDB file." << endl;
