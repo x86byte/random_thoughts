@@ -12,4 +12,4 @@ include_directories(transofrmer/PE/Instrumentation/materialization/state)
 
 add_executable(random_thoughts
         transofrmer/PE/_MAIN/main.cpp
-        transofrmer/PE/Instrumentation/materialization/state/pe.hpp)
+        transofrmer/PE/Instrumentation/materialization/state/PE.hpp "transofrmer/PDB/PdbReader.cpp" "transofrmer/PE/Instrumentation/materialization/state/PE.cpp")
