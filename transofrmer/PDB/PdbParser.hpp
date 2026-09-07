@@ -9,7 +9,7 @@
 #include <print>
 #include <filesystem>
 #include <ctime>
-
+#include <array>
 
 #define		all(x) (x).begin(), (x).end()
 #define		PDB_SIGNATURE		"Microsoft C/C++ MSF 7.00"

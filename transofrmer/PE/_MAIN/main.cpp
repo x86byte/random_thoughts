@@ -46,8 +46,8 @@ VOID	PeFile::_IsValidPe()
 		Raw_.data() + DOS_RAW->e_lfanew);
 	if (NtRaw->Signature != IMAGE_NT_SIGNATURE)
 		throw Error("[PeFile - ERROR] not a valid PE (bad NT signature)");
-	if (NtRaw->FileHeader.Machine != IMAGE_FILE_MACHINE_AMD64)
-		throw Error("[PeFile - ERROR] only AMD64 (x64) binaries are supported");
+	//if (NtRaw->FileHeader.Machine != IMAGE_FILE_MACHINE_AMD64)
+		// throw Error("[PeFile - ERROR] only AMD64 (x64) binaries are supported");
 	PeImageSize = NtRaw->OptionalHeader.SizeOfImage;
 	if (PeImageSize == 0)
 		throw Error("[PeFile - ERROR] SizeOfImage is zero");
@@ -62,7 +62,6 @@ PeFile::PeFile(fs::path PePath)
 		throw Error("[PeFile - ERROR] Could not open the file.");
 	Raw_.assign(istreambuf_iterator<char>(PE), {});
 	_IsValidPe();
-
 	PeImage.assign(PeImageSize, 0);
 	U32 HdrBytes = min<U32>(
 		NtRaw->OptionalHeader.SizeOfHeaders,
@@ -77,7 +76,7 @@ PeFile::PeFile(fs::path PePath)
 		PeImage.data()
 	);
 
-	for (int i = 0; i < NtRaw->FileHeader.NumberOfSections; ++i)
+	for (i32 i = 0; i < NtRaw->FileHeader.NumberOfSections; ++i)
 	{
 		auto* Section = IMAGE_FIRST_SECTION(NtRaw) + i;
 		if (!Section->SizeOfRawData)
@@ -92,6 +91,7 @@ PeFile::PeFile(fs::path PePath)
 			PeImage.data() + Section->VirtualAddress
 		);
 	}
+	DetectArch();
 }
 
 VOID PeFile::FmtPeInfos() {
@@ -132,6 +132,7 @@ VOID PeFile::FmtPeInfos() {
 	NtRaw = nth_parser(PeImage);
 	if (!ispe32plus)
 		throw Error("[PeImage - ERROR]  not a PE32+ (x64) image - only x64 supported\n");
+	cout << "[machine] MACHINE ARCH : " << (arch_() == 0 ? "amd x64-x86" : "UNKNOWN") << endl;
 	cout << "[nt heaeder 64] : " << hex << NtRaw << endl;
 	cout << "[image base] : 0x" << hex << image_base_ << endl;
 	[&](vui& PE)
@@ -152,7 +153,7 @@ VOID PeFile::FmtPeInfos() {
 			PIMAGE_SECTION_HEADER sh_bp = sh;
 			U64 nbr_s = NtRaw->FileHeader.NumberOfSections;
 			sections.reserve(nbr_s);
-			for (int i = 0; i < nbr_s; i++)
+			for (i32 i = 0; i < nbr_s; i++)
 			{
 				SectionInfo si{};
 				copy(begin(sh_bp->Name), end(sh_bp->Name), begin(si.name));
@@ -169,29 +170,44 @@ VOID PeFile::FmtPeInfos() {
 	cout << endl;
 }
 
-PIMAGE_DOS_HEADER	PeFile::DosGetter()
+PIMAGE_DOS_HEADER	PeFile::dos()
 {
 	return (reinterpret_cast<PIMAGE_DOS_HEADER>(PeImage.data()));
 }
 
 PIMAGE_NT_HEADERS64	PeFile::nt()
 {
-	return (reinterpret_cast<PIMAGE_NT_HEADERS64>(PeImage.data() + DosGetter()->e_lfanew));
+	return (reinterpret_cast<PIMAGE_NT_HEADERS64>(PeImage.data() + dos()->e_lfanew));
 }
 
 
-VOID	test(auto ob)
+VOID	PeFile::DetectArch()
 {
-	PIMAGE_NT_HEADERS64 ret = ob.nt();
-	cout << "MACHINE arch : " << ret->FileHeader.Machine << endl;
+	switch (nt()->FileHeader.Machine)
+	{
+	case IMAGE_FILE_MACHINE_AMD64:
+		ArchType = PeFile::x64;
+		break;
+	case IMAGE_FILE_MACHINE_I386:
+		ArchType = PeFile::x86;
+		break;
+	default:
+		ArchType = PeFile::UNKNOWN; //throw Error("[PeFile - ERROR] the Archeticture not supputed");
+		break;
+	}
 }
 
-int main(int ac, char* av[])
+ll	PeFile::arch_()
+{
+	return ArchType;
+}
+
+i32 main(i32 ac, int_least8_t* av[])
 {
 	try {
 		if (ac == 3)
 		{
-			string PePath = av[2];
+			string PePath = string((const char*)(av[2]));
 			if (!ExtensionChecker(PePath))
 			{
 				cout << "[ERROR] The file must have a .exe extension." << endl;
@@ -200,9 +216,8 @@ int main(int ac, char* av[])
 			fs::path pth(PePath);
 			cout << "[PE name] : " << pth << endl;
 			PeFile pe(pth);
-			test(pe);
 			pe.FmtPeInfos();
-			string PdbFile = av[1];
+			string PdbFile = string((const char*)(av[1]));
 			if (ExtensionChecker(PdbFile))
 			{
 				if (!filesystem::exists(PdbFile))

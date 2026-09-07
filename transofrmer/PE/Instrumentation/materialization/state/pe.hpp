@@ -53,13 +53,13 @@ struct
 
 #pragma endregion HERLPERS
 
-#include <array>
-
 struct PeFile
 {
+	enum { x64, x86, UNKNOWN };
 	vector<uint8_t>			Raw_;
 	vector<uint8_t>			PeImage;
 	ll						PeImageSize;
+	ll						ArchType = UNKNOWN;
 	bool					ispe32plus = false;
 	VA						image_base_ = 0;
 	RVA						entry_point_ = 0;
@@ -70,6 +70,8 @@ struct PeFile
 	PeFile(fs::path PePath);
 	VOID					_IsValidPe();
 	VOID					FmtPeInfos();
-	PIMAGE_DOS_HEADER		DosGetter();
+	VOID					DetectArch();
+	[[nodiscard]] ll		arch_();
+	PIMAGE_DOS_HEADER		dos();
 	PIMAGE_NT_HEADERS64		nt();
 };
