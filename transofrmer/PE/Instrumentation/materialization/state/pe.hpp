@@ -18,6 +18,7 @@ namespace _PE
 	using U64 = uint64_t;
 	using U32 = uint32_t;
 	using i32 = int32_t;
+	using i8 = int8_t;
 	using UCHAR = uint8_t;
 	using BYTE = uint8_t; // damn i forget to write BYTE always instead of UCHAR...
 	using PVOID = void*;
@@ -55,11 +56,25 @@ struct
 
 struct PeFile
 {
-	enum { x64, x86, UNKNOWN };
+	enum class t_arch
+	{
+		x64,
+		x86,
+		UNKNOWN
+	};
+	enum class t_type
+	{
+		EXE,
+		DLL,
+		SYS,
+		UNKNOWN
+	};
+
 	vector<uint8_t>			Raw_;
 	vector<uint8_t>			PeImage;
 	ll						PeImageSize;
-	ll						ArchType = UNKNOWN;
+	ll						ArchType = static_cast<ll>(t_arch::UNKNOWN);
+	ll						PeType = static_cast<ll>(t_type::UNKNOWN);
 	bool					ispe32plus = false;
 	VA						image_base_ = 0;
 	RVA						entry_point_ = 0;
@@ -71,7 +86,9 @@ struct PeFile
 	VOID					_IsValidPe();
 	VOID					FmtPeInfos();
 	VOID					DetectArch();
+	VOID					DetectType();
 	[[nodiscard]] ll		arch_();
+	[[nodiscard]] string	PeType_();
 	PIMAGE_DOS_HEADER		dos();
 	PIMAGE_NT_HEADERS64		nt();
 };

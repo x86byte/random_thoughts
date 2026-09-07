@@ -92,6 +92,7 @@ PeFile::PeFile(fs::path PePath)
 		);
 	}
 	DetectArch();
+	DetectType();
 }
 
 VOID PeFile::FmtPeInfos() {
@@ -132,7 +133,7 @@ VOID PeFile::FmtPeInfos() {
 	NtRaw = nth_parser(PeImage);
 	if (!ispe32plus)
 		throw Error("[PeImage - ERROR]  not a PE32+ (x64) image - only x64 supported\n");
-	cout << "[machine] MACHINE ARCH : " << (arch_() == 0 ? "amd x64-x86" : "UNKNOWN") << endl;
+	cout << "[machine] MACHINE ARCH : " << (arch_() == 0 ? "amd x64-x86" : "UNKNOWN") << " - " << PeType_() << endl;
 	cout << "[nt heaeder 64] : " << hex << NtRaw << endl;
 	cout << "[image base] : 0x" << hex << image_base_ << endl;
 	[&](vui& PE)
@@ -186,15 +187,30 @@ VOID	PeFile::DetectArch()
 	switch (nt()->FileHeader.Machine)
 	{
 	case IMAGE_FILE_MACHINE_AMD64:
-		ArchType = PeFile::x64;
+		ArchType = static_cast<ll>(PeFile::t_arch::x64);
 		break;
 	case IMAGE_FILE_MACHINE_I386:
-		ArchType = PeFile::x86;
+		ArchType = static_cast<ll>(PeFile::t_arch::x86);
 		break;
 	default:
-		ArchType = PeFile::UNKNOWN; //throw Error("[PeFile - ERROR] the Archeticture not supputed");
+		ArchType = static_cast<ll>(PeFile::t_arch::UNKNOWN); //throw Error("[PeFile - ERROR] the Archeticture not supputed");
 		break;
 	}
+}
+
+VOID PeFile::DetectType()
+{
+	auto Chars = nt()->FileHeader.Characteristics;
+	auto sub = nt()->OptionalHeader.Subsystem;
+	if (Chars & IMAGE_FILE_DLL)
+		PeType = static_cast<ll>(t_type::DLL);
+	else if (Chars & IMAGE_FILE_EXECUTABLE_IMAGE)
+		PeType = static_cast<ll>(t_type::EXE);
+	else if ((Chars & IMAGE_FILE_SYSTEM) && sub == IMAGE_SUBSYSTEM_NATIVE)
+		PeType = static_cast<ll>(t_type::SYS);
+	else
+		PeType = static_cast<ll>(t_type::UNKNOWN);
+	return;
 }
 
 ll	PeFile::arch_()
@@ -202,7 +218,19 @@ ll	PeFile::arch_()
 	return ArchType;
 }
 
-i32 main(i32 ac, int_least8_t* av[])
+string	PeFile::PeType_()
+{
+	ll iTy = PeType;
+	if (iTy == 0)
+		return "EXE";
+	else if (iTy == 1)
+		return "DLL";
+	else if (iTy == 2)
+		return "SYS";
+	return "UKNOWN";
+}
+
+i32 main(i32 ac, i8* av[])
 {
 	try {
 		if (ac == 3)
