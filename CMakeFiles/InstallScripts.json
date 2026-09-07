@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/LLVM/learning/random_thoughts/cmake_install.cmake",
+		"C:/LLVM/learning/random_thoughts/_deps/raw_pdb-build/cmake_install.cmake",
+		"C:/LLVM/learning/random_thoughts/_deps/raw_pdb-build/src/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

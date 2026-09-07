@@ -1,0 +1,7 @@
+# This is a generated file and its contents are an internal implementation detail.
+# The patch step will be re-executed if anything in this file changes.
+# No other meaning or use of this file is supported.
+
+command (connected)=C:/Program Files/CMake/bin/cmake.exe;-Dcan_fetch=YES;-DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE;-P;C:/LLVM/learning/random_thoughts/CMakeFiles/fc-tmp/raw_pdb/raw_pdb-gitupdate.cmake
+command (disconnected)=C:/Program Files/CMake/bin/cmake.exe;-Dcan_fetch=NO;-DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE;-P;C:/LLVM/learning/random_thoughts/CMakeFiles/fc-tmp/raw_pdb/raw_pdb-gitupdate.cmake
+work_dir=C:/LLVM/learning/random_thoughts/_deps/raw_pdb-src

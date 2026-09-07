@@ -1,4 +1,13 @@
 #include "PdbReader.hpp"
+#include <PDB.h>
+#include <PDB_RawFile.h>
+#include <PDB_DBIStream.h>
+#include <PDB_ImageSectionStream.h>
+#include <PDB_ModuleInfoStream.h>
+#include <PDB_ModuleSymbolStream.h>
+#include <PDB_PublicSymbolStream.h>
+#include <PDB_CoalescedMSFStream.h>
+#include <PDB_DBITypes.h>
 
 ll	PdbParser::ProbablyAPdbFile(const string& PdbFile)
 {
@@ -59,19 +68,34 @@ vector<PdbParser::FunctionInfos> PdbParser::EnumFunctions()
 		throw Error("[INTERNAL - ERROR] Could not get the PDB file size.");
 	}
 
-	HANDLE hMap = CreateFileMappingA(hPdb, nullptr, PAGE_READONLY, 0, 0, nullptr);
+	HANDLE hMap = CreateFileMappingA(
+		hPdb,
+		nullptr,
+		PAGE_READONLY,
+		0,
+		0,
+		nullptr
+	);
 	if (hMap == nullptr)
 	{
 		CloseHandle(hPdb);
 		throw Error("[INTERNAL - ERROR] Could not create a file mapping for the PDB file.");
 	}
 
-	const void* pView = MapViewOfFile(hMap, FILE_MAP_READ, 0, 0, 0);
+	const void* pView = MapViewOfFile(
+		hMap,
+		FILE_MAP_READ,
+		0,
+		0,
+		0
+	);
 	if (pView == nullptr)
 	{
 		CloseHandle(hMap);
 		CloseHandle(hPdb);
 		throw Error("[INTERNAL - ERROR] Could not map the PDB file into memory.");
 	}
-	return vector{ PdbParser::FunctionInfos{ "", 0, 0 } };
+	vector<PdbParser::FunctionInfos> Functions;
+	cout << "[INFO] Enumerating functions from PDB file: " << pdbPath << endl;
+	return Functions;
 };
