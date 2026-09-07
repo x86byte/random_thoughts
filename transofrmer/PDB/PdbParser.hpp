@@ -1,30 +1,11 @@
-#pragma once
-
-#include <Windows.h>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <algorithm>
-#include <vector>
-#include <print>
-#include <filesystem>
-#include <ctime>
-#include <array>
-#include <tuple>
-
-#define		all(x) (x).begin(), (x).end()
-#define		PDB_SIGNATURE		"Microsoft C/C++ MSF 7.00"
-#define		NTOSKRNL_PDB_PATH	"C:\\Dev\\Current\\ent8\\ntoskrnl.pdb"
-
-using		namespace std;
-using		ll = long long;
-using		vc = vector<char>;
-using		ll = long long;
+#include "../PE/Instrumentation/materialization/state/pe.hpp"
 
 class PdbParser {
 private:
-	string	PdbFile;
-	struct FunctionInfos {
+	PeFile			PE_;
+	string			PdbFile;
+	struct			FunctionInfos
+	{
 		string		FuncName;
 		ll			FunctionOffset;
 		ll			CodeSize;
@@ -32,6 +13,7 @@ private:
 
 	vector<FunctionInfos> EnumFunctions();
 public:
-	explicit PdbParser(const string& PdbFile_);
+	explicit		PdbParser(PeFile PE);
+	ll				ProbablyAPdbFile(const string& PdbFile);
 	~PdbParser() = default;
 };

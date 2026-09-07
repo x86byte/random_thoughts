@@ -1,6 +1,25 @@
-#include "../../PDB/PdbParser.hpp"
+#pragma once
 
-using namespace std;
+#include <Windows.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <algorithm>
+#include <vector>
+#include <print>
+#include <filesystem>
+#include <ctime>
+#include <array>
+#include <tuple>
+
+#define		all(x) (x).begin(), (x).end()
+#define		PDB_SIGNATURE		"Microsoft C/C++ MSF 7.00"
+#define		NTOSKRNL_PDB_PATH	"C:\\Dev\\Current\\ent8\\ntoskrnl.pdb"
+
+using		namespace std;
+using		ll = long long;
+using		vc = vector<char>;
+using		ll = long long;
 
 #pragma region HELPERS
 
@@ -83,6 +102,7 @@ struct PeFile
 	PIMAGE_NT_HEADERS64		NtRaw = nullptr;
 	vector<SectionInfo>		sections;
 
+	PeFile() = default;
 	PeFile(fs::path PePath);
 	VOID					_IsValidPe();
 	VOID					FmtPeInfos();

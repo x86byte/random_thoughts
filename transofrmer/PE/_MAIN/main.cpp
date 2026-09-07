@@ -1,4 +1,5 @@
-#include "../Instrumentation/materialization/state/pe.hpp"
+#include "../../PDB/PdbParser.hpp"
+
 
 ll	ExtensionChecker(const string& HFile)
 {
@@ -9,7 +10,7 @@ ll	ExtensionChecker(const string& HFile)
 	return 0;
 }
 
-ll	ProbablyAPdbFile(const string& PdbFile)
+ll	PdbParser::ProbablyAPdbFile(const string& PdbFile)
 {
 	ifstream file(PdbFile, ios::binary);
 	if (!file.is_open())
@@ -23,10 +24,7 @@ ll	ProbablyAPdbFile(const string& PdbFile)
 	return strncmp(buffer.data(), PDB_SIGNATURE, sizeof(PDB_SIGNATURE) - 1) == 0;
 }
 
-PdbParser::PdbParser(const string& PdbFile_) : PdbFile(PdbFile_)
-{
-	cout << "[INFO] Parsing the PDB file: " << PdbFile << endl;
-}
+PdbParser::PdbParser(PeFile PE) : PE_(PE) {}
 
 /*
 PS C:\LLVM\learning\random_thoughts\transofrmer\PE\_MAIN> .\PdbParser.exe "C:\\Dev\\Current\\ent8\\ntoskrnl.pdb"
@@ -264,12 +262,12 @@ i32 main(i32 ac, i8* av[])
 					cout << "[ERROR] The file does not exist." << endl;
 					return 1;
 				}
-				if (!ProbablyAPdbFile(PdbFile))
+				PdbParser PdbParser_(pe);
+				if (!PdbParser_.ProbablyAPdbFile(PdbFile))
 				{
 					cout << "[ERROR] The file does not appear to be a valid PDB file." << endl;
 					return 1;
 				}
-				PdbParser PdbParser_(PdbFile);
 			}
 			else {
 				cout << "[ERROR] The file must have a .pdb extension." << endl;
