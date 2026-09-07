@@ -97,5 +97,24 @@ vector<PdbParser::FunctionInfos> PdbParser::EnumFunctions()
 	}
 	vector<PdbParser::FunctionInfos> Functions;
 	cout << "[INFO] Enumerating functions from PDB file: " << pdbPath << endl;
+	try {
+		using namespace PDB;
+
+		const RawFile rawPdbFile(pView);
+		const DBIStream dbiStream =
+			CreateDBIStream(rawPdbFile); // Dbg info stream
+
+		const ImageSectionStream _ImageSectionStream =
+			dbiStream.CreateImageSectionStream(rawPdbFile);
+		const ModuleInfoStream _ModuleInfoStream =
+			dbiStream.CreateModuleInfoStream(rawPdbFile);
+		const CoalescedMSFStream _SymbolRecordStream =
+			dbiStream.CreateSymbolRecordStream(rawPdbFile);
+
+	}
+	catch (...)
+	{
+		throw;
+	}
 	return Functions;
 };
