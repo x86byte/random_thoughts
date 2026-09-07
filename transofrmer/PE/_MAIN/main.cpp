@@ -93,7 +93,7 @@ PeFile::PeFile(fs::path PePath)
 	}
 	DetectArch();
 	DetectType();
-	cout << "[First sec name for test] : " << GetSectionIdx() << endl;
+	// cout << "[First sec name for test] : " << GetSectionIdx(".text") << endl;
 }
 
 VOID PeFile::FmtPeInfos() {
@@ -214,11 +214,14 @@ VOID PeFile::DetectType()
 	return;
 }
 
-string	PeFile::GetSectionIdx()
+ll	PeFile::GetSectionIdx(Const_String SecName)
 {
 	auto* Head = IMAGE_FIRST_SECTION(nt());
 	i32		i = 0;
-	return string(reinterpret_cast<char*>(Head[0].Name));
+	for (i = 0; i < nt()->FileHeader.NumberOfSections; i++)
+		if (strcmp(reinterpret_cast<char*>(Head[i].Name), SecName) == 0)
+			return i;
+	return -1;
 }
 
 ll	PeFile::arch_()

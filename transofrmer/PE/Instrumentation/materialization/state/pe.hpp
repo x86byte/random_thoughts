@@ -23,6 +23,7 @@ namespace _PE
 	using BYTE = uint8_t; // damn i forget to write BYTE always instead of UCHAR...
 	using PVOID = void*;
 	using vui = vector<uint8_t>;
+	using Const_String = const char*;
 	namespace fs = filesystem;
 }
 
@@ -89,7 +90,7 @@ struct PeFile
 	VOID					DetectType();
 	[[nodiscard]] ll		arch_();
 	[[nodiscard]] string	PeType_();
-	[[nodiscard]] string		GetSectionIdx();
+	[[nodiscard]] ll		GetSectionIdx(Const_String SecName);
 	PIMAGE_DOS_HEADER		dos();
 	PIMAGE_NT_HEADERS64		nt();
 };
